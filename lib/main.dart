@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _fetchQuote, // Calls _fetchQuote to fetch new quotes
+              onPressed: _fetchQuote,
               child: const Text('New Quote'),
             ),
             const SizedBox(height: 20),
@@ -115,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: _calculate,
-                  child: const Text('='), // Performs calculation and clears fields
+                  child: const Text('='),
                 ),
                 const SizedBox(height: 20),
                 Container(
