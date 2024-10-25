@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:task/ui/calculator_input.dart';
+import 'package:task/ui/history_list.dart';
+import 'package:task/ui/quote_widget.dart';
+import 'quote_service.dart';
+import 'calculator_service.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Adder with Quotes',
+      title: 'Task',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
         useMaterial3: true,
@@ -42,30 +46,22 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _fetchQuote();
+    _getQuote();
   }
 
-  Future<void> _fetchQuote() async {
-    final response = await http.get(Uri.parse('https://zenquotes.io/api/random'));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        _quote = data[0]['q'] + " - " + data[0]['a'];
-      });
-    } else {
-      setState(() {
-        _quote = "Failed to load quote";
-      });
-    }
+  Future<void> _getQuote() async {
+    String quote = await fetchQuote();
+    setState(() {
+      _quote = quote;
+    });
   }
 
   void _calculate() {
     int num1 = int.tryParse(_firstNumberController.text) ?? 0;
     int num2 = int.tryParse(_secondNumberController.text) ?? 0;
     setState(() {
-      _result = num1 + num2;
+      _result = calculate(num1, num2);
       _history.add('$num1 + $num2 = $_result');
-
     });
   }
 
@@ -79,73 +75,19 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text("Quote of the day"),
-            const SizedBox(height: 10),
-            Text(
-              _quote,
-              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _fetchQuote,
-              child: const Text('New Quote'),
+            QuoteWidget(
+              quote: _quote,
+              onNewQuote: _getQuote,
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _firstNumberController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: 'Enter first number',border: OutlineInputBorder()),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text('+'),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _secondNumberController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: 'Enter second number',
-                    border: OutlineInputBorder()),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _calculate,
-                  child: const Text('='),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  alignment: Alignment.center,
-                  margin: EdgeInsets.only(left: 10),
-                  width: 60,
-                  decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.black,width: 1.0))
-                  ),
-                  child: Text(
-                    _result != null ? '$_result' : ' ',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ),
-              ],
+            CalculatorInput(
+              firstNumberController: _firstNumberController,
+              secondNumberController: _secondNumberController,
+              onCalculate: _calculate,
+              result: _result,
             ),
-
             const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.all(0),
-                itemCount: _history.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Text('•'),
-                    title: Text(_history[index]),
-                  );
-                },
-              ),
-            ),
+            HistoryList(history: _history),
           ],
         ),
       ),
